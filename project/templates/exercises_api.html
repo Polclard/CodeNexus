@@ -1,0 +1,357 @@
+{% extends 'base.html' %}
+{% block bodycontent %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+
+    <link rel="stylesheet" href="https://cdn.datatables.net/2.0.0/css/dataTables.dataTables.css" />
+    <script src="https://cdn.datatables.net/2.0.0/js/dataTables.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/2.1.0/sweetalert.min.js"></script>
+
+    <style>
+        tfoot input {
+            width: 100%;
+            padding: 3px;
+            box-sizing: border-box;
+        }
+    </style>
+
+    <title>Exercises</title>
+</head>
+
+<body>
+    <div class="card p-5 m-5">
+        {% if current_user.is_authenticated and current_user.role.name =="ADMIN" %}
+        <h1 class="text-center">Visible Exercises</h1>
+
+        <table id="myTable" class="table table-striped display table-bordered" style="width:100%">
+            <thead>
+                <tr>
+                    <th>Exam Id</th>
+                    <th>Date Created</th>
+                    <th>Title</th>
+                    <th>Description</th>
+                    <th>Start Time</th>
+                    <th>End Time</th>
+                    <th>Code</th>
+                    <th>Programming Language</th>
+                    <th>Number of attempts</th>
+                    <th>Visible</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for exercise in all_exercises%}
+                {% if exercise.visible %}
+                <tr>
+                    <td>{{ exercise.id }}</td>
+                    <td>{{ exercise.date_created }}</td>
+                    <td>{{ exercise.title }}</td>
+                    <td>{{ exercise.description }}</td>
+                    <td>{{ exercise.start_time }}</td>
+                    <td>{{ exercise.end_time }}</td>
+                    <td>{{ exercise.code }}</td>
+                    <td>{{ exercise.programming_language }}</td>
+                    <td>X/{{ exercise.number_of_attempts }}</td>
+                    {% if exercise.visible %}
+                    <td>Yes</td>
+                    {% endif %}
+                    {% if not exercise.visible %}
+                    <td>No</td>
+                    {% endif %}
+                    <td>
+                        <a class="btn btn-info" href="{{ url_for('main.edit_exercise', exercise_id=exercise.id) }}">
+                            <i class="bi bi-pencil-square"></i>
+                            Edit
+                        </a>
+                        <form id="delForm{{exercise.id}}" name="delForm{{exercise.id}}" style=" display:inline;"
+                            method="POST" action="{{ url_for('main.delete_exercise_post', exercise_id=exercise.id) }}">
+                            <button class="btn btn-danger" onclick="Delete('{{exercise.id}}')">
+                                <i class="bi bi-trash"></i>
+                                Delete
+                            </button>
+                        </form>
+                        <form id="attemptForm{{exercise.id}}" name="attemptForm{{exercise.id}}" method="POST"
+                            style=" display:inline;"
+                            action="{{ url_for('main.exercise_detail_view', exercise_id=exercise.id) }}">
+                            <button class="btn btn-warning" onclick="StartNewAttempt('{{exercise.id}}')">
+                                <i class="bi bi-code-square"></i>
+                                Start new attempt
+                            </button>
+                        </form>
+
+                    </td>
+                </tr>
+                {% endif %}
+                {% endfor %}
+
+            </tbody>
+            <tfoot>
+                <th scope="th-sm">Exam Id</th>
+                <th scope="th-sm">Date Created</th>
+                <th scope="th-sm">Title</th>
+                <th scope="th-sm">Description</th>
+                <th scope="th-sm">Start Time</th>
+                <th scope="th-sm">End Time</th>
+                <th scope="th-sm">Code</th>
+                <th scope="th-sm">Programming Language</th>
+                <th scope="th-sm">Number of attempts</th>
+                <th scope="th-sm">Visible</th>
+                <th scope="th-sm">Actions</th>
+            </tfoot>
+        </table>
+
+
+        <h1 class="text-center">Hidden Exercises</h1>
+
+        <table id="myTableHidden" class="table table-striped display table-bordered" style="width:100%">
+            <thead>
+                <tr>
+                    <th>Exam Id</th>
+                    <th>Date Created</th>
+                    <th>Title</th>
+                    <th>Description</th>
+                    <th>Start Time</th>
+                    <th>End Time</th>
+                    <th>Code</th>
+                    <th>Programming Language</th>
+                    <th>Number of attempts</th>
+                    <th>Visible</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- TODO make only certain exercises to be visible -->
+                {% for exercise in all_exercises%}
+                {% if not exercise.visible %}
+                <tr>
+                    <td>{{ exercise.id }}</td>
+                    <td>{{ exercise.date_created }}</td>
+                    <td>{{ exercise.title }}</td>
+                    <td>{{ exercise.description }}</td>
+                    <td>{{ exercise.start_time }}</td>
+                    <td>{{ exercise.end_time }}</td>
+                    <td>{{ exercise.code }}</td>
+                    <td>{{ exercise.programming_language }}</td>
+                    <td>X/{{ exercise.number_of_attempts }}</td>
+                    {% if exercise.visible %}
+                    <td>Yes</td>
+                    {% endif %}
+                    {% if not exercise.visible %}
+                    <td>No</td>
+                    {% endif %}
+                    <td>
+                        <a class="btn btn-info" href="{{ url_for('main.edit_exercise', exercise_id=exercise.id) }}">
+                            <i class="bi bi-pencil-square"></i>
+                            Edit
+                        </a>
+                        <form id="delForm{{exercise.id}}" name="delForm{{exercise.id}}" style=" display:inline;"
+                            method="POST" action="{{ url_for('main.delete_exercise_post', exercise_id=exercise.id) }}">
+                            <button class="btn btn-danger" onclick="Delete('{{exercise.id}}')">
+                                <i class="bi bi-trash"></i>
+                                Delete
+                            </button>
+                        </form>
+                        <form id="attemptForm{{exercise.id}}" name="attemptForm{{exercise.id}}" method="POST"
+                            style=" display:inline;"
+                            action="{{ url_for('main.exercise_detail_view', exercise_id=exercise.id) }}">
+                            <button class="btn btn-warning" onclick="StartNewAttempt('{{exercise.id}}')">
+                                <i class="bi bi-code-square"></i></i>
+                                Start new attempt
+                            </button>
+                        </form>
+
+                    </td>
+                </tr>
+                {% endif %}
+                {% endfor %}
+
+            </tbody>
+            <tfoot>
+                <th scope="th-sm">Exam Id</th>
+                <th scope="th-sm">Date Created</th>
+                <th scope="th-sm">Title</th>
+                <th scope="th-sm">Description</th>
+                <th scope="th-sm">Start Time</th>
+                <th scope="th-sm">End Time</th>
+                <th scope="th-sm">Code</th>
+                <th scope="th-sm">Programming Language</th>
+                <th scope="th-sm">Number of attempts</th>
+                <th scope="th-sm">Visible</th>
+                <th scope="th-sm">Actions</th>
+            </tfoot>
+        </table>
+
+        {% endif %}
+
+        {% if current_user.is_authenticated and current_user.role.name !="ADMIN" %}
+        <h1 class="text-center">Availible Exercises</h1>
+
+        <table id="myTable" class="table table-striped display table-bordered" style="width:100%">
+            <thead>
+                <tr>
+                    <th>Exam Id</th>
+                    <th>Title</th>
+                    <th>Description</th>
+                    <th>Start Time</th>
+                    <th>End Time</th>
+                    <th>Code</th>
+                    <th>Number of attempts</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- TODO make only certain exercises to be visible -->
+                {% for exercise in all_exercises%}
+                    {% if exercise.visible%}
+                        <tr>
+                            <td>{{ exercise.id }}</td>
+                            <td>{{ exercise.title }}</td>
+                            <td>{{ exercise.description }}</td>
+                            <td>{{ exercise.start_time }}</td>
+                            <td>{{ exercise.end_time }}</td>
+                            <td>{{ exercise.code }}</td>
+                            <td>X/{{ exercise.number_of_attempts }}</td>
+                            <td>
+                                <form id="attemptForm{{exercise.id}}" name="attemptForm{{exercise.id}}" method="POST"
+                                    style=" display:inline;"
+                                    action="{{ url_for('main.exercise_detail_view', exercise_id=exercise.id) }}">
+                                    <button class="btn btn-warning" onclick="StartNewAttempt('{{exercise.id}}')">
+                                        <i class="bi bi-code-square"></i></i>
+                                        Start new attempt
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% endif %}
+                {% endfor %}
+
+            </tbody>
+            <tfoot>
+                <th scope="th-sm">Exam Id</th>
+                <th scope="th-sm">Title</th>
+                <th scope="th-sm">Description</th>
+                <th scope="th-sm">Start Time</th>
+                <th scope="th-sm">End Time</th>
+                <th scope="th-sm">Code</th>
+                <th scope="th-sm">Number of attempts</th>
+                <th scope="th-sm">Actions</th>
+            </tfoot>
+        </table>
+
+        {% endif %}
+    </div>
+
+</body>
+<script>
+    let table = new DataTable('#myTable', {
+        paging: true,
+        responsive: true,
+        scrollX: true,
+        rowReorder: true,
+        initComplete: function () {
+            this.api()
+                .columns()
+                .every(function () {
+                    let column = this;
+                    let title = column.footer().textContent;
+
+                    // Create input element
+                    let input = document.createElement('input');
+                    input.placeholder = title;
+                    column.footer().replaceChildren(input);
+
+                    // Event listener for user input
+                    input.addEventListener('keyup', () => {
+                        if (column.search() !== this.value) {
+                            column.search(input.value).draw();
+                        }
+                    });
+                });
+        }
+    });
+
+
+//myTableHidden
+
+
+        let tableHidden = new DataTable('#myTableHidden', {
+            paging: true,
+            responsive: true,
+            rowReorder: true,
+            scrollX: true,
+            initComplete: function () {
+                this.api()
+                    .columns()
+                    .every(function () {
+                        let column = this;
+                        let title = column.footer().textContent;
+
+                        // Create input element
+                        let input = document.createElement('input');
+                        input.placeholder = title;
+                        column.footer().replaceChildren(input);
+
+                        // Event listener for user input
+                        input.addEventListener('keyup', () => {
+                            if (column.search() !== this.value) {
+                                column.search(input.value).draw();
+                            }
+                        });
+                    });
+            }
+        });
+
+
+
+    function Delete(id) {
+        event.preventDefault(); // prevent form submit
+        var form = document.forms["delForm" + id]; // storing the form
+        swal({
+            title: "Are You Sure? (Дали сте сигурни?)",
+            text: "Once deleted, you will not be able to recover the exercise with id: " + id,
+            icon: "warning",
+            buttons: true,
+            dangerMode: true,
+        })
+            .then((willDelete) => {
+                if (willDelete) {
+                    form.submit();
+                } else {
+                    swal("Aborted! (Прекинато!)");
+                }
+            });
+    }
+
+    function StartNewAttempt(id) {
+        event.preventDefault(); // prevent form submit
+        var form = document.forms["attemptForm" + id]; // storing the form
+        swal({
+            title: "Start New Attempt? (Започни со ново решавање на задачата?)",
+            text: "You will start the exercise with id: " + id,
+            icon: "warning",
+            buttons: true,
+            dangerMode: true,
+        })
+            .then((willDelete) => {
+                if (willDelete) {
+                    form.submit();
+                } else {
+                    swal("Aborted! (Прекинато!)");
+                }
+            });
+    }
+
+</script>
+
+</html>
+{% endblock %}

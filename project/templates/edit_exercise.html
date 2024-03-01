@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Exercise</title>
+    <style>
+        textarea {
+            width: 100%;
+        }
+    </style>
+</head>
+
+<body>
+    {% extends 'base.html' %}
+    {% block bodycontent %}
+    <h1 class="text-center">Edit Exercise</h1>
+    <div class="card m-5">
+        <form method="POST" action= "{{ url_for('main.edit_exercise_post', exercise_id=exercise.id) }}" class="p-5">
+
+            <div class="field">
+                <label>Enter the Title of the Exercise <b>(Внеси го насловот на задачата)</b>:</label>
+                <div class="control">
+                    <input class="input is-large" type="text" name="exercise_title" placeholder="Exercise Title"
+                        autofocus="" required="true" value="{{ exercise.title }}">
+                </div>
+            </div>
+
+            <div class="field">
+                <label>Enter the description and the requirements of the Exercise <b>(Внеси го описот и барањата на
+                        задачата)</b>:</label>
+                <div class="control">
+                    <textarea id="exercise_description" class="text" cols="100%" rows="10" name="exercise_description"
+                        required="true">{{ exercise.description }}</textarea>
+                </div>
+            </div>
+
+            <div class="field">
+                <label>Enter the starter code here if exists <b>(Внеси го почетниот код на задачата доколку
+                        постои)</b></label>
+                <div class="control">
+                    <textarea id="code" class="text" cols="100%" rows="10" name="code">{{ exercise.code }}</textarea>
+                </div>
+            </div>
+
+            <div class="field">
+                <label>Enter the Start Date of the Exercise <b>(Внеси го почетниот датум на задачата)</b>:</label>
+                <div class="control">
+                    <input class="input is-large" type="datetime-local" name="start_date"
+                        placeholder="Exercise Start date" autofocus="" required="true"
+                        value="{{ exercise.start_time }}">
+                </div>
+            </div>
+            <div class="field">
+                <label>Enter the End Date of the Exercise <b>(Внеси го крајниот датум на задачата)</b>:</label>
+                <div class="control">
+                    <input class="input is-large" type="datetime-local" name="end_date" placeholder="Exercise End date"
+                        autofocus="" required="true" value="{{ exercise.end_time }}">
+                </div>
+            </div>
+            <div class="field">
+                <label>Enter the number of attempts <b>(Внеси го бројот на обиди за соодветната задача)</b>:</label>
+                <div class="control">
+                    <input class="input is-large" type="number" name="number_of_attempts"
+                        placeholder="Number of attempts" autofocus="" required="true"
+                        value="{{ exercise.number_of_attempts }}">
+                </div>
+            </div>
+
+            <div class="field">
+                <label>Enter the Tests in the following format <b>(Внеси ги тест примерите во следниот
+                        облик)</b>:</label>
+                <h3 class="text-danger text-center  ">Be carefull to enter them in this way otherwise it will not work
+                </h3>
+                <h3 class="text-danger text-center">Бидете внимателни да ги внесете тест примерите во овој формат поради
+                    тоа што во друг формат нема да работат.</h3>
+                    <h3 class="text-danger text-center">JSON FORMAT</h3>
+                    <h3 class="text-danger text-center">Различно е од кога ги внесуватае за прв пат (кога додавате)
+                        различно е и сега, бидете внимателни.
+                    </h3>
+
+                <b>
+<pre>
+{'Test 1 Input': 'Test 1 Expected','Test 2 Input': 'Test 2 Expected','Test 3 Input': 'Test 3 Expected',...,'Test n Input': 'Test n Expected'}
+</pre>
+                </b>
+                <div class="control">
+                    <textarea id="test_cases" class="text" cols="100%" rows="10" name="test_cases"
+                        required="true">{{ exercise.test_cases }}</textarea>
+                </div>
+            </div>
+
+            <div class="field">
+                <label>Enter the programming lanugage <b>(Внеси го името на програмскиот јазик)</b>:</label>
+                <h3>Во овој формат:</h3>
+<pre>
+python - python
+c++ - cpp
+BETA
+</pre>
+                <div class="control">
+                    <input class="input is-large" type="text" name="programming_language" placeholder="Programming Language" autofocus=""
+                        required="true" value="{{ exercise.programming_language }}">
+                </div>
+            </div>
+
+            <div class="field">
+                <label>Enter if the exercise should be visible or hidden for the users  <b>(Внеси дали задачата да е видлива или скриена за другите корисници)</b>:</label>
+                
+                <div class="control" >
+                    {% if exercise.visible %}
+                        <select class="select is-large" name="visible">
+                            <option value="true" selected>Visible</option>
+                            <option value="false">Hidden</option>
+                        </select>
+                    {% endif%}
+                    {% if not exercise.visible %}
+                        <select class="select is-large" name="visible">
+                            <option value="true">Visible</option>
+                            <option value="false" selected>Hidden</option>
+                        </select>
+                    {% endif%}
+                </div>
+            </div>
+
+            <button class="button w-auto is-block is-success is-large float-left">Save Changes</button>
+            <a class="button is-info is-large float-right" href="{{ url_for('main.exercises_api') }}">Go Back</a>
+        </form>
+    </div>
+
+    {% endblock %}
+</body>
+
+</html>

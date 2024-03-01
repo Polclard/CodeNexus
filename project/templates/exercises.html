@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+{% block bodycontent %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- {% include 'monaco_code_essentials.html' %} -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <title>Exams</title>
+</head>
+
+<body>
+    <div class="card p-5 m-5 bg-dark">
+        {% if current_user.is_authenticated and current_user.role.name =="ADMIN" %}
+        <h1 class="text-center text-white">All Exercises</h1>
+        {#<p>Current number of exams: {{len(exams)}}</p>#}
+        <table class="table card-body">
+            <thead>
+                <tr>
+                    <th scope="col">Exam Id</th>
+                    <th scope="col">Title</th>
+                    <th scope="col">Description</th>
+                    <th scope="col">Start Time</th>
+                    <th scope="col">End Time</th>
+                    <th scope="col">Number of attempts</th>
+                    <th scope="col">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for exercise in all_exercises %}
+                <tr>
+                    <th>{{ exercise.id }}</th>
+                    <td>{{ exercise.title }}</td>
+                    <td>{{ exercise.description }}</td>
+                    <td>{{ exercise.start_time }}</td>
+                    <td>{{ exercise.end_time }}</td>
+                    <td>X/{{ exercise.number_test_cases }}</td>
+                    <td>
+                        <a class="btn btn-info"><i class="bi bi-pencil-square"></i> Edit</a>
+                        <a class="btn btn-danger"><i class="bi bi-trash"></i> Delete</a>
+                    </td>
+                </tr>
+                {% endfor %}
+
+            </tbody>
+        </table>
+        {% endif %}
+        {% if current_user.is_authenticated and current_user.role.name !="ADMIN" %}
+        <h1 class="text-center">Availible Exercises</h1>
+        <table class="table card-body">
+            <thead>
+                <tr>
+                    <th scope="col">Exam Id</th>
+                    <th scope="col">Title</th>
+                    <th scope="col">Description</th>
+                    <th scope="col">Start</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for exercise in all_exercises %}
+                <tr>
+                    <th>{{ exercise.title }}</th>
+                    <td>Mark</td>
+                    <td>Otto</td>
+                    <td>@mdo</td>
+                </tr>
+                {% endfor %}
+
+            </tbody>
+        </table>
+        {% endif %}
+    </div>
+
+</body>
+
+</html>
+{% endblock %}

@@ -1,0 +1,284 @@
+{% extends 'base.html' %}
+{% block bodycontent %}
+    <!DOCTYPE html>
+    <html lang="en">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Exams</title>
+
+        <script src="../static/codemirror-5.65.16/lib/codemirror.js"></script>
+        <link href="../static/codemirror-5.65.16/lib/codemirror.css" rel="stylesheet"/>
+        {% if exercise.programming_language == 'python' %}
+            <script src="../static/codemirror-5.65.16/mode/python/python.js"></script>
+        {% endif %}
+        {% if exercise.programming_language == 'cpp' %}
+            <script src="../static/codemirror-5.65.16/mode/clike/clike.js"></script>
+        {% endif %}
+        <script src="../static/codemirror-5.65.16/addon/edit/closetag.js"></script>
+        <script src="../static/codemirror-5.65.16/addon/edit/closebrackets.js"></script>
+        <script src="../static/codemirror-5.65.16/addon/hint/anyword-hint.js"></script>
+        <script src="../static/codemirror-5.65.16/addon/hint/show-hint.js"></script>
+        <script src="../static/codemirror-5.65.16/addon/hint/css-hint.js"></script>
+        <link rel="stylesheet" href="../static/codemirror-5.65.16/addon/hint/show-hint.css"/>
+
+        <style>
+            .difference {
+                background-color: yellow;
+            }
+        </style>
+        <link href="../static/codemirror-5.65.16/theme/ambiance.css" rel="stylesheet"/>
+
+    </head>
+
+    <body>
+    <h1 class="text-center">Title: {{ exercise.title }}</h1>
+
+    <div style="height: 80px;"></div>
+
+    {% if attempt.submitted == 0 %}
+        <div id="countdown" class="card p-3 m-3"
+             style="float: right; position: absolute; top: 110px; right: 20px; z-index: 10">
+            <div>
+                <span id="years"></span> years
+                <span id="months"></span> months
+                <span id="days"></span> days
+                <span id="hours"></span> hours
+                <span id="minutes"></span> minutes
+                <span id="seconds"></span> seconds
+            </div>
+        </div>
+    {% endif %}
+    <div></div>
+    <div class="card p-3 m-3">
+        <form class="p-3" id="myForm" method="POST">
+
+            <h4>Exercise Description</h4>
+            <blockquote class="blockquote">
+                <p class="mb-0 w-100">{{ exercise.description }} </p>
+            </blockquote>
+            <hr>
+            <h4>Date Created</h4>
+            <blockquote class="blockquote">
+                <p class="mb-0">{{ exercise.date_created }} </p>
+            </blockquote>
+
+            <div class="border border-2">
+                <textarea id="codeTextArea" name="codeTextArea" name="codeTextArea">{{ exercise.code }}</textarea>
+            </div>
+
+            <br>
+            {% if attempt.submitted == 0 or current_user.role.name == 'ADMIN' %}
+                <h3 class="text-danger text-center">
+                    Information: First check the Tests to see if they pass on the
+                    <button
+                            class="button w-auto is-large is-success" disabled>Test Exercise
+                    </button>
+                    button
+                </h3>
+
+
+                <input name="exercise_id" style="opacity: 0;" value="{{ exercise.id }}"/>
+                <br>
+                <input type="hidden" name="action" id="action" value="">
+                {#            <input name="runned_tests" style="opacity: 0;" value="{{ attempt.number_of_passed_test_cases }}">#}
+
+                <div class="container">
+                    <div class="row">
+                        <div class="col">
+                            <div class="d-flex justify-content-between flex-wrap">
+                                <div class="custom-box">
+                                    <button class="button w-auto is-block is-large is-danger float-left"
+                                            type="button" onclick="submitForm('method1')">Submit Exercise
+                                    </button>
+                                </div>
+                                {#                            <div class="custom-box"><a class="button is-info is-large"#}
+                                {#                                    href="{{ url_for('main.exercises_api')}}">Go Back</a></div>#}
+                                <div class="custom-box">
+                                    <button class="button w-auto is-large is-success" type="button"
+                                            onclick="submitForm('method2')">Test
+                                        Exercise
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </form>
+
+    </div>
+
+    <div class="card p-3 m-3">
+        <h2 class="text-center">Test Cases</h2>
+        <table class="table table-bordered table-striped">
+            <thead>
+            <tr>
+                <th scope="col">Input</th>
+                <th scope="col">Expected</th>
+                <th scope="col">Output</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for key,value in exercise.test_cases.items() %}
+                <tr>
+                    {% if value == runned_tests[loop.index0] %}
+                        <td>{{ key }}</td>
+                        <td id="value{{ loop.index0 }}">{{ value }}</td>
+                        <td class="bg-success" id="output{{ loop.index0 }}">{{ runned_tests[loop.index0] }}</td>
+                    {% endif %}
+
+                    {% if value != runned_tests[loop.index0] %}
+                        <td>{{ key }}</td>
+                        <td id="value{{ loop.index0 }}">{{ value }}</td>
+                        <td class="bg-danger" id="output{{ loop.index0 }}">{{ runned_tests[loop.index0] }}</td>
+                    {% endif %}
+                </tr>
+            {% endfor %}
+            </tbody>
+            <tfoot>
+            {% if attempt.number_of_passed_tests == attempt.exercise.test_cases.values()|length %}
+                <td class="btn-success" colspan="2"><b>Number of passed tests: {{ attempt.number_of_passed_tests }}
+                    / {{ exercise.test_cases.values()|length }}</b></td>
+                <td class="" colspan="1">
+                    {% if attempt.submitted == 0 or current_user.role.name == 'ADMIN' %}
+                        <button class="btn btn-info" onclick="compareStrings()">Check
+                            Differences
+                        </button>
+                    {% endif %}
+                </td>
+            {% endif %}
+            {% if attempt.number_of_passed_tests != attempt.exercise.test_cases.values()|length %}
+                <td class="btn-warning" colspan="2"><b>Number of passed tests: {{ attempt.number_of_passed_tests }}
+                    / {{ attempt.exercise.test_cases.values()|length }}</b></td>
+                <td class="" colspan="1">
+                    {% if attempt.submitted == 0 or current_user.role.name == 'ADMIN' %}
+                        <button class="btn btn-info float_right" type="button" onclick="compareStrings()">
+                            Check Differences
+                        </button>
+                    {% endif %}
+                </td>
+            {% endif %}
+            </tfoot>
+        </table>
+    </div>
+
+    <script>
+        var editor = CodeMirror.fromTextArea
+        (document.getElementById('codeTextArea'), {
+            mode: "python",
+            theme: "ambiance",
+            {% if attempt.submitted == 1 and current_user.role.name != 'ADMIN' %}
+                readOnly: true,
+            {% endif %}
+            lineNumbers: true,
+            autoCloseTags: true,
+            extraKeys: {"Ctrl-Space": "autocomplete"}
+        });
+
+        function submitForm(action) {
+            document.getElementById('action').value = action;
+            var form = document.getElementById('myForm');
+            if (action == 'method1') {
+                form.action = "{{ url_for('main.submit_attempt', attempt_id=attempt.id) }}"
+                form.submit();
+            } else if (action == 'method2') {
+                form.action = "{{ url_for('main.test_attempt', attempt_id=attempt.id) }}"
+                form.submit();
+            }
+        }
+
+
+        function compareStrings() {
+
+
+            for (let i = 0; i < '{{ exercise.test_cases.values()|length }}'; i++) {
+                let value = document.getElementById("value" + i).innerHTML
+                let output = document.getElementById("output" + i).innerHTML
+                let output_tag = document.getElementById("output" + i)
+
+                let already_contains_difference = false
+
+                let children = output_tag.children
+                for (var j = 0; j < children.length; j++) {
+                    if (children[j].classList.contains('difference')) {
+                        already_contains_difference = true
+                        break;
+                    }
+                }
+
+                if (already_contains_difference == false) {
+                    const div1Text = value;
+                    const div2Text = output;
+
+                    const maxLength = Math.max(div1Text.length, div2Text.length);
+                    let markedText1 = '';
+                    let markedText2 = '';
+
+                    for (let i = 0; i < maxLength; i++) {
+                        if (div1Text[i] !== div2Text[i]) {
+                            markedText1 += `<span class="difference">${div1Text[i] || ''}</span>`;
+                            markedText2 += `<span class="difference">${div2Text[i] || ''}</span>`;
+                        } else {
+                            markedText1 += div1Text[i] || '';
+                            markedText2 += div2Text[i] || '';
+                        }
+                    }
+                    //document.getElementById("value" + i).innerHTML = markedText1;
+                    document.getElementById("output" + i).innerHTML = markedText2;
+                }
+            }
+
+        }
+
+        // Set the future date to countdown to
+        const futureDate = new Date("{{ attempt.exercise.end_time }}");
+
+        function updateCountdown() {
+            const currentDate = new Date();
+            if (currentDate < futureDate) {
+                const timeDifference = futureDate - currentDate;
+
+                const oneYear = 365 * 24 * 60 * 60 * 1000;
+                const oneMonth = (365 / 12) * 24 * 60 * 60 * 1000;
+                const oneDay = 24 * 60 * 60 * 1000;
+                const oneHour = 60 * 60 * 1000;
+                const oneMinute = 60 * 1000;
+
+                const years = Math.floor(timeDifference / oneYear);
+                const months = Math.floor((timeDifference % oneYear) / oneMonth);
+                const days = Math.floor((timeDifference % oneMonth) / oneDay);
+                const hours = Math.floor((timeDifference % oneDay) / oneHour);
+                const minutes = Math.floor((timeDifference % oneHour) / oneMinute);
+                const seconds = Math.floor((timeDifference % oneMinute) / 1000);
+
+                document.getElementById("years").textContent = years;
+                document.getElementById("months").textContent = months;
+                document.getElementById("days").textContent = days;
+                document.getElementById("hours").textContent = hours;
+                document.getElementById("minutes").textContent = minutes;
+                document.getElementById("seconds").textContent = seconds;
+            } else {
+                document.getElementById("years").textContent = 0;
+                document.getElementById("months").textContent = 0;
+                document.getElementById("days").textContent = 0;
+                document.getElementById("hours").textContent = 0;
+                document.getElementById("minutes").textContent = 0;
+                document.getElementById("seconds").textContent = 0;
+                document.getElementById("countdown").style.backgroundColor = "red";
+            }
+        }
+
+        // Update the countdown every second
+        setInterval(updateCountdown, 1000);
+
+        // Initial call to update the countdown immediately
+        updateCountdown();
+
+    </script>
+
+    </body>
+
+    </html>
+{% endblock %}

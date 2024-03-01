@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+{% block bodycontent %}
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+
+        <link rel="stylesheet" href="https://cdn.datatables.net/2.0.0/css/dataTables.dataTables.css"/>
+        <script src="https://cdn.datatables.net/2.0.0/js/dataTables.js"></script>
+
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/2.1.0/sweetalert.min.js"></script>
+
+        <title>Title</title>
+    </head>
+    <body>
+    <div class="card p-5 m-5">
+        <h1 class="text-center">My Attempts</h1>
+        <table id="myAttempts" class="table table-striped display table-bordered" style="width:100%">
+            <thead>
+            <tr>
+                <th>Attempt Id</th>
+                <th>Exercise Title</th>
+                <th>Controls</th>
+            </tr>
+            </thead>
+            <tbody>
+            <!-- TODO make only certain exercises to be visible -->
+            {% for attempt in attempts %}
+                <tr>
+                    <td>{{ attempt.id }}</td>
+                    <td>{{ attempt.exercise.title }}</td>
+                    {% if attempt.submitted == 0 %}
+                        <td>
+                            <a class="btn btn-warning" href="{{ url_for('main.attempt', attempt_id=attempt.id) }}">Continue
+                                Attempt</a>
+                        </td>
+                    {% endif %}
+                    {% if attempt.submitted == 1 %}
+                        <td>
+                            <a class="btn btn-info" href="{{ url_for('main.attempt', attempt_id=attempt.id) }}">Review
+                                Attempt</a>
+                        </td>
+                    {% endif %}
+
+                </tr>
+            {% endfor %}
+
+            </tbody>
+            <tfoot>
+            <th scope="th-sm">Attempt Id</th>
+            <th scope="th-sm">Exercise Title</th>
+            <th scope="th-sm">Controls</th>
+            </tfoot>
+        </table>
+    </div>
+    </body>
+
+    <script>
+        let table = new DataTable('#myAttempts', {
+            paging: true,
+            responsive: true,
+            scrollX: true,
+            initComplete: function () {
+                this.api()
+                    .columns()
+                    .every(function () {
+                        let column = this;
+                        let title = column.footer().textContent;
+
+                        // Create input element
+                        let input = document.createElement('input');
+                        input.placeholder = title;
+                        column.footer().replaceChildren(input);
+
+                        // Event listener for user input
+                        input.addEventListener('keyup', () => {
+                            if (column.search() !== this.value) {
+                                column.search(input.value).draw();
+                            }
+                        });
+                    });
+            }
+        });
+    </script>
+
+    </html>
+{% endblock %}

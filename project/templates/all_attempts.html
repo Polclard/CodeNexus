@@ -1,0 +1,179 @@
+{% extends 'base.html' %}
+{% block bodycontent %}
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+
+        <link rel="stylesheet" href="https://cdn.datatables.net/2.0.0/css/dataTables.dataTables.css"/>
+        <script src="https://cdn.datatables.net/2.0.0/js/dataTables.js"></script>
+
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/2.1.0/sweetalert.min.js"></script>
+
+        <title>Title</title>
+    </head>
+    <body>
+    <div class="card p-5 m-5">
+        <h1 class="text-center">All Attempts</h1>
+
+        <div style="overflow-x: scroll;">
+            <table id="myTable" class="table table-striped display table-bordered" style="width:100%">
+
+        </div>
+        <thead>
+        <tr>
+            <th>Attempt Id</th>
+            <th>Exercise Title</th>
+            <th>User Name</th>
+            <th>User Email</th>
+            <th>Passed Tests</th>
+            <th>Points Based On Tests</th>
+            <th>Submitted</th>
+            <th>Controls</th>
+            <th>Grade</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for attempt in attempts %}
+            <tr>
+                <td>{{ attempt.id }}</td>
+                <td>{{ attempt.exercise.title }}</td>
+                <td>{{ attempt.user.name }}</td>
+                <td>{{ attempt.user.email }}</td>
+                {% if attempt.number_of_passed_tests == attempt.exercise.test_cases.values()|length %}
+                    <td class="bg-success">{{ attempt.number_of_passed_tests }}
+                        / {{ attempt.exercise.test_cases.values()|length }}</td>
+                {% elif attempt.number_of_passed_tests == 0 %}
+                    <td class="bg-danger">{{ attempt.number_of_passed_tests }}
+                        / {{ attempt.exercise.test_cases.values()|length }}</td>
+                {% else %}
+                    <td class="bg-warning">{{ attempt.number_of_passed_tests }}
+                        / {{ attempt.exercise.test_cases.values()|length }}</td>
+                {% endif %}
+
+                <td>{{ ((attempt.number_of_passed_tests * 1.0) / attempt.exercise.test_cases.values()|length) * 100 }}</td>
+
+                <td>
+                    {{ attempt.submitted }}
+                </td>
+
+                <td>
+                    <div>
+                        <a class="btn btn-info" href="{{ url_for('main.attempt', attempt_id=attempt.id) }}">Inspect
+                            Attempt {{ attempt.id }} (ADMIN)</a>
+                    </div>
+                    <br>
+                    <div>
+                        <a class="btn btn-secondary"
+                           href="{{ url_for('main.edit_exercise', exercise_id=attempt.exercise.id) }}">Inspect
+                            Exercise {{ attempt.exercise.id }} From Attempt {{ attempt.id }} (ADMIN)</a>
+                    </div>
+                </td>
+                <td>
+                    <div>
+                        <form method="POST" action="{{ url_for('main.grade_attempt', attempt_id=attempt.id) }}">
+                            <label>
+                                Select Grade First:
+                            </label>
+                            <select class="form-select" aria-label="Default select example" name="grade_n" id="grade_n">
+                                {% if attempt.grade == 1 %}
+                                    <option value="1" selected>1</option>
+                                    <option value="2">2</option>
+                                    <option value="3">3</option>
+                                    <option value="4">4</option>
+                                    <option value="5">5</option>
+                                {% elif attempt.grade == 2 %}
+                                    <option value="1">1</option>
+                                    <option value="2" selected>2</option>
+                                    <option value="3">3</option>
+                                    <option value="4">4</option>
+                                    <option value="5">5</option>
+                                {% elif attempt.grade == 3 %}
+                                    <option value="1">1</option>
+                                    <option value="2">2</option>
+                                    <option value="3" selected>3</option>
+                                    <option value="4">4</option>
+                                    <option value="5">5</option>
+                                {% elif attempt.grade == 4 %}
+                                    <option value="1">1</option>
+                                    <option value="2">2</option>
+                                    <option value="3">3</option>
+                                    <option value="4" selected>4</option>
+                                    <option value="5">5</option>
+                                {% elif attempt.grade == 5 %}
+                                    <option value="1">1</option>
+                                    <option value="2">2</option>
+                                    <option value="3">3</option>
+                                    <option value="4">4</option>
+                                    <option value="5" selected>5</option>
+                                {% else %}
+                                    <option value="1">1</option>
+                                    <option value="2">2</option>
+                                    <option value="3">3</option>
+                                    <option value="4">4</option>
+                                    <option value="5">5</option>
+                                {% endif %}
+                            </select>
+                            <br>
+                            <button class="btn btn-success" type="submit"
+                                    href="{{ url_for('main.edit_exercise', exercise_id=attempt.exercise.id) }}">
+                                Grade {{ attempt.exercise.id }} For Attempt {{ attempt.id }} (ADMIN)
+                            </button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+        {% endfor %}
+
+        </tbody>
+        <tfoot>
+        <th scope="th-sm" style="width: 10px ">Attempt Id</th>
+        <th scope="th-sm">Exercise Title</th>
+        <th scope="th-sm">User Name</th>
+        <th scope="th-sm">User Email</th>
+        <th scope="th-sm">Passed Tests</th>
+        <th scope="th-sm">Points Based On Tests</th>
+        <th scope="th-sm">Submitted</th>
+        <th scope="th-sm">Controls</th>
+        <th scope="th-sm">Grade</th>
+
+        </tfoot>
+        </table>
+    </div>
+    </body>
+
+    <script>let table = new DataTable('#myTable', {
+        paging: true,
+        responsive: true,
+        rowReorder: true,
+        initComplete: function () {
+            this.api()
+                .columns()
+                .every(function () {
+                    let column = this;
+                    let title = column.footer().textContent;
+
+                    // Create input element
+                    let input = document.createElement('input');
+                    input.placeholder = title;
+                    column.footer().replaceChildren(input);
+
+                    // Event listener for user input
+                    input.addEventListener('keyup', () => {
+                        if (column.search() !== this.value) {
+                            column.search(input.value).draw();
+                        }
+                    });
+                });
+        }
+    });
+    </script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+    </html>
+{% endblock %}
